@@ -1,0 +1,31 @@
+name: Test Minimal Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: [self-hosted, incus, ppc64le, minimal]
+    
+    steps:
+      - name: Check Environment
+        run: |
+          echo "Runner: $(hostname)"
+          uname -a
+          
+      - name: Test Docker
+        run: docker run --rm hello-world
+      
+      - name: Test Git
+        run: git --version
+      
+      - name: Test Python
+        run: |
+          python3 --version
+          python3 -c "print('✅ Python works!')"
+      
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Success
+        run: echo "🎉 Minimal runner works perfectly!"
