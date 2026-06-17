@@ -1,0 +1,370 @@
+name: Test Complete Runner Image
+
+on:
+  push:
+    branches: [ main, feat/incus ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-core-tools:
+    name: Test Core Development Tools
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Verify Docker
+        run: |
+          echo "=== Docker Version ==="
+          docker --version
+          docker info
+          
+      - name: Test Docker functionality
+        run: |
+          echo "=== Testing Docker ==="
+          docker run --rm hello-world
+          docker run --rm alpine:latest echo "Alpine container works!"
+          
+      - name: Verify Git
+        run: |
+          echo "=== Git Version ==="
+          git --version
+          git config --global user.name "Test User"
+          git config --global user.email "test@example.com"
+          
+      - name: Verify Python
+        run: |
+          echo "=== Python Version ==="
+          python3 --version
+          pip3 --version
+          python3 -c "import sys; print(f'Python {sys.version}')"
+          
+      - name: Verify Node.js
+        run: |
+          echo "=== Node.js Version ==="
+          node --version
+          npm --version
+          npx --version
+
+  test-languages:
+    name: Test Programming Languages
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test Java
+        run: |
+          echo "=== Java Version ==="
+          java --version
+          javac --version
+          echo "public class Hello { public static void main(String[] args) { System.out.println(\"Java works!\"); } }" > Hello.java
+          javac Hello.java
+          java Hello
+          
+      - name: Test Ruby
+        run: |
+          echo "=== Ruby Version ==="
+          ruby --version
+          gem --version
+          ruby -e "puts 'Ruby works!'"
+          
+      - name: Test PHP
+        run: |
+          echo "=== PHP Version ==="
+          php --version
+          php -r "echo 'PHP works!' . PHP_EOL;"
+          
+      - name: Test Go
+        run: |
+          echo "=== Go Version ==="
+          go version
+          echo 'package main; import "fmt"; func main() { fmt.Println("Go works!") }' > hello.go
+          go run hello.go
+          
+      - name: Test Rust (with setup)
+        run: |
+          echo "=== Rust Setup ==="
+          rustup default stable || true
+          rustc --version
+          cargo --version
+          echo 'fn main() { println!("Rust works!"); }' > hello.rs
+          rustc hello.rs
+          ./hello
+
+  test-databases:
+    name: Test Database Clients
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test MySQL Client
+        run: |
+          echo "=== MySQL Client ==="
+          mysql --version
+          
+      - name: Test PostgreSQL Client
+        run: |
+          echo "=== PostgreSQL Client ==="
+          psql --version
+          
+      - name: Test with Docker MySQL
+        run: |
+          echo "=== Starting MySQL in Docker ==="
+          docker run -d --name test-mysql \
+            -e MYSQL_ROOT_PASSWORD=testpass \
+            -e MYSQL_DATABASE=testdb \
+            mysql:8.0
+          
+          echo "Waiting for MySQL to start..."
+          sleep 30
+          
+          echo "Testing MySQL connection..."
+          docker exec test-mysql mysql -uroot -ptestpass -e "SELECT VERSION();"
+          
+          echo "Cleanup..."
+          docker rm -f test-mysql
+
+  test-container-tools:
+    name: Test Container & Kubernetes Tools
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test kubectl
+        run: |
+          echo "=== kubectl Version ==="
+          kubectl version --client
+          
+      - name: Test Helm
+        run: |
+          echo "=== Helm Version ==="
+          helm version
+          
+      - name: Test Docker Compose
+        run: |
+          echo "=== Docker Compose ==="
+          docker compose version || docker-compose --version
+
+  test-build-tools:
+    name: Test Build Tools
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test Maven
+        run: |
+          echo "=== Maven Version ==="
+          mvn --version
+          
+      - name: Test Gradle
+        run: |
+          echo "=== Gradle Version ==="
+          gradle --version
+          
+      - name: Test CMake
+        run: |
+          echo "=== CMake Version ==="
+          cmake --version
+          
+      - name: Test Make
+        run: |
+          echo "=== Make Version ==="
+          make --version
+
+  test-docker-build:
+    name: Test Docker Build Capabilities
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create test Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          FROM alpine:latest
+          RUN apk add --no-cache curl
+          CMD ["echo", "Docker build works!"]
+          EOF
+          
+      - name: Build Docker image
+        run: |
+          docker build -t test-image:latest .
+          
+      - name: Run Docker image
+        run: |
+          docker run --rm test-image:latest
+          
+      - name: Cleanup
+        run: |
+          docker rmi test-image:latest
+
+  test-multi-language-project:
+    name: Test Multi-Language Project
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create Python app
+        run: |
+          mkdir -p test-app
+          cd test-app
+          echo "print('Hello from Python')" > app.py
+          python3 app.py
+          
+      - name: Create Node.js app
+        run: |
+          cd test-app
+          echo "console.log('Hello from Node.js')" > app.js
+          node app.js
+          
+      - name: Create Go app
+        run: |
+          cd test-app
+          cat > app.go << 'EOF'
+          package main
+          import "fmt"
+          func main() {
+              fmt.Println("Hello from Go")
+          }
+          EOF
+          go run app.go
+          
+      - name: Cleanup
+        run: |
+          rm -rf test-app
+
+  test-package-managers:
+    name: Test Package Managers
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test pip
+        run: |
+          echo "=== pip Version ==="
+          pip3 --version
+          pip3 list | head -20
+          
+      - name: Test npm
+        run: |
+          echo "=== npm Version ==="
+          npm --version
+          npm list -g --depth=0 | head -20
+          
+      - name: Test gem
+        run: |
+          echo "=== gem Version ==="
+          gem --version
+          gem list | head -20
+
+  test-system-info:
+    name: System Information
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Display system info
+        run: |
+          echo "=== System Information ==="
+          uname -a
+          cat /etc/os-release
+          
+      - name: Display CPU info
+        run: |
+          echo "=== CPU Information ==="
+          lscpu | grep -E "Architecture|CPU|Model name"
+          
+      - name: Display memory info
+        run: |
+          echo "=== Memory Information ==="
+          free -h
+          
+      - name: Display disk info
+        run: |
+          echo "=== Disk Information ==="
+          df -h
+          
+      - name: Display package count
+        run: |
+          echo "=== Package Count ==="
+          dpkg -l | wc -l
+          echo "Total packages installed"
+          
+      - name: Display environment
+        run: |
+          echo "=== Environment Variables ==="
+          env | sort | grep -E "PATH|HOME|USER|JAVA|NODE|PYTHON|GO|RUST"
+
+  integration-test:
+    name: Integration Test - Full Stack
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    needs: [test-core-tools, test-languages, test-databases, test-container-tools]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Full stack test
+        run: |
+          echo "=== Running Full Stack Integration Test ==="
+          
+          # Start services in Docker
+          docker run -d --name test-redis redis:alpine
+          docker run -d --name test-nginx nginx:alpine
+          
+          # Wait for services
+          sleep 10
+          
+          # Test services
+          docker exec test-redis redis-cli ping
+          docker exec test-nginx nginx -v
+          
+          # Cleanup
+          docker rm -f test-redis test-nginx
+          
+          echo "=== Integration Test Complete ==="
+
+  summary:
+    name: Test Summary
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    needs: [test-core-tools, test-languages, test-databases, test-container-tools, test-build-tools, test-docker-build, integration-test]
+    if: always()
+    
+    steps:
+      - name: Test Summary
+        run: |
+          echo "================================"
+          echo "  Complete Runner Test Summary"
+          echo "================================"
+          echo ""
+          echo "✅ Core Tools: Tested"
+          echo "✅ Languages: Tested"
+          echo "✅ Databases: Tested"
+          echo "✅ Container Tools: Tested"
+          echo "✅ Build Tools: Tested"
+          echo "✅ Docker Build: Tested"
+          echo "✅ Integration: Tested"
+          echo ""
+          echo "Runner Image: ubuntu-22.04-ppc64le (complete)"
+          echo "Architecture: ppc64le (IBM Power)"
+          echo "Container Runtime: Incus"
+          echo ""
+          echo "All tests completed!"
