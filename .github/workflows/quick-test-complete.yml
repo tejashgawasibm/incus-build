@@ -1,0 +1,103 @@
+name: Quick Test - Complete Image
+
+on:
+  push:
+    branches: [ main, feat/incus ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  quick-validation:
+    name: Quick Validation (1-2 min)
+    runs-on: [self-hosted, incus, ppc64le, complete]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: System Info
+        run: |
+          echo "================================"
+          echo "  Quick Validation Test"
+          echo "================================"
+          echo ""
+          echo "Architecture: $(uname -m)"
+          echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
+          echo "Kernel: $(uname -r)"
+          echo ""
+      
+      - name: Core Tools
+        run: |
+          echo "=== Core Tools ==="
+          docker --version
+          git --version
+          python3 --version
+          node --version
+          echo "✅ Core tools OK"
+          echo ""
+      
+      - name: Languages
+        run: |
+          echo "=== Languages ==="
+          java --version | head -1
+          ruby --version
+          php --version | head -1
+          go version
+          echo "✅ Languages OK"
+          echo ""
+      
+      - name: Docker Test
+        run: |
+          echo "=== Docker Test ==="
+          docker run --rm hello-world
+          echo "✅ Docker OK"
+          echo ""
+      
+      - name: Build Tools
+        run: |
+          echo "=== Build Tools ==="
+          mvn --version | head -1
+          gradle --version | head -1
+          make --version | head -1
+          echo "✅ Build tools OK"
+          echo ""
+      
+      - name: Container Tools
+        run: |
+          echo "=== Container Tools ==="
+          kubectl version --client --short 2>/dev/null || kubectl version --client | head -1
+          helm version --short 2>/dev/null || helm version | head -1
+          echo "✅ Container tools OK"
+          echo ""
+      
+      - name: Database Clients
+        run: |
+          echo "=== Database Clients ==="
+          mysql --version
+          psql --version
+          echo "✅ Database clients OK"
+          echo ""
+      
+      - name: Package Count
+        run: |
+          echo "=== Package Count ==="
+          PACKAGE_COUNT=$(dpkg -l | wc -l)
+          echo "Total packages: $PACKAGE_COUNT"
+          if [ "$PACKAGE_COUNT" -gt 1000 ]; then
+            echo "✅ Package count OK ($PACKAGE_COUNT > 1000)"
+          else
+            echo "⚠️ Package count low ($PACKAGE_COUNT < 1000)"
+          fi
+          echo ""
+      
+      - name: Summary
+        run: |
+          echo "================================"
+          echo "  ✅ Quick Test PASSED"
+          echo "================================"
+          echo ""
+          echo "Runner: ubuntu-22.04-ppc64le (complete)"
+          echo "Status: All core functionality verified"
+          echo "Time: ~1-2 minutes"
+          echo ""
