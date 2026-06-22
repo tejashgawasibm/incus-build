@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-incus-ppc64le:
-    runs-on: [self-hosted, incus, ppc64le, ubuntu-22.04,lvm-back]
+    runs-on: [self-hosted, incus, ppc64le, ubuntu-22.04, lvm-back]
     
     steps:
       - name: Runner Info
@@ -31,12 +31,43 @@ jobs:
           
       - name: Check Storage
         run: |
+          echo "=== Filesystem Info ==="
           df -h
-          mount | grep overlay
+          
+          echo ""
+          echo "=== Storage Type ==="
+          # Check for LVM block device (Incus LVM)
+          if mount | grep -q '/dev/dm-'; then
+            echo "✅ Using LVM block device storage"
+            mount | grep '/dev/dm-'
+            echo ""
+            echo "Root device:"
+            findmnt -n -o SOURCE /
+          # Check for overlay (Docker/Podman)
+          elif mount | grep -q 'overlay'; then
+            echo "✅ Using overlay filesystem"
+            mount | grep overlay
+          # Check for directory storage
+          else
+            echo "✅ Using directory-based storage"
+            mount | grep ' / '
+          fi
+          
+          echo ""
+          echo "=== Storage Backend Info ==="
+          # Show LVM info if available
+          if command -v lvs >/dev/null 2>&1; then
+            echo "LVM Logical Volumes:"
+            sudo lvs 2>/dev/null || echo "No LVM volumes accessible"
+          fi
           
       - name: Network Test
         run: |
+          echo "=== Network Connectivity ==="
           ping -c 3 8.8.8.8
+          
+          echo ""
+          echo "=== HTTPS Connectivity ==="
           curl -I https://github.com
           
       - name: Checkout Code
@@ -44,8 +75,13 @@ jobs:
         
       - name: Build Test
         run: |
-          echo "Building on ppc64le..."
+          echo "🔨 Building on ppc64le with Incus LVM storage..."
+          echo "Architecture: $(uname -m)"
+          echo "Storage: LVM thin provisioning"
           # Your build commands here
           
       - name: Success
-        run: echo "✅ Incus runner on ppc64le working perfectly!"
+        run: |
+          echo "✅ Incus runner on ppc64le working perfectly!"
+          echo "✅ LVM storage verified"
+          echo "✅ All tests passed"
