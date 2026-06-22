@@ -1,0 +1,51 @@
+# .github/workflows/test-incus-runner.yml
+name: Test Incus Runner
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/incus]
+
+jobs:
+  test-incus-ppc64le:
+    runs-on: [self-hosted, incus, ppc64le, ubuntu-22.04,lvm-back]
+    
+    steps:
+      - name: Runner Info
+        run: |
+          echo "🎉 Running on Incus container!"
+          echo "Runner: $RUNNER_NAME"
+          echo "OS: $RUNNER_OS"
+          echo "Arch: $RUNNER_ARCH"
+          uname -a
+          
+      - name: Check Runner Version
+        run: |
+          cd ~/actions-runner
+          ./bin/Runner.Listener --version
+          
+      - name: Check Docker
+        run: |
+          docker --version
+          docker ps
+          
+      - name: Check Storage
+        run: |
+          df -h
+          mount | grep overlay
+          
+      - name: Network Test
+        run: |
+          ping -c 3 8.8.8.8
+          curl -I https://github.com
+          
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Build Test
+        run: |
+          echo "Building on ppc64le..."
+          # Your build commands here
+          
+      - name: Success
+        run: echo "✅ Incus runner on ppc64le working perfectly!"
