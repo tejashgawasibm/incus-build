@@ -1,0 +1,39 @@
+name: Test Incus Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, incus, ppc64le, ubuntu-24.04]
+    
+    steps:
+      - name: Check runner info
+        run: |
+          echo "Runner name: $RUNNER_NAME"
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner arch: $RUNNER_ARCH"
+          uname -a
+          
+      - name: Check installed tools
+        run: |
+          echo "=== Git ==="
+          git --version
+          
+          echo "=== Python ==="
+          python --version
+          
+          echo "=== Docker ==="
+          docker --version
+          
+          echo "=== GitHub CLI ==="
+          gh --version
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run a simple test
+        run: |
+          echo "Hello from Incus container on ppc64le!"
+          pwd
+          ls -la
