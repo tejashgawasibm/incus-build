@@ -26,8 +26,8 @@ jobs:
           echo "=== Docker ==="
           docker --version
           
-          echo "=== GitHub CLI ==="
-          gh --version
+          echo "=== GitHub ==="
+          git --version
           
       - name: Checkout code
         uses: actions/checkout@v4
