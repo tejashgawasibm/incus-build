@@ -5,7 +5,7 @@ on:
 
 jobs:
   test-runner:
-    runs-on: [self-hosted, incus, ppc64le, ubuntu-24.04]
+    runs-on: [self-hosted, incus, ppc64le, ubuntu-24.04, complete]
     
     steps:
       - name: Check runner info
