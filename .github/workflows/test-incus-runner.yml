@@ -34,6 +34,6 @@ jobs:
         
       - name: Run a simple test
         run: |
-          echo "Hello from Incus container on ppc64le!"
+          echo "Hello from Incus on ppc64le!"
           pwd
           ls -la
