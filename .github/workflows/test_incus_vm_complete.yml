@@ -5,9 +5,8 @@ on:
 
 jobs:
   validate-incus-vm:
-    runs-on: self-hosted
-
-    steps:
+      runs-on: [self-hosted, ppc64le, ubuntu-24.04]
+      steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
