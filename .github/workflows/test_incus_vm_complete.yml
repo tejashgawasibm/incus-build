@@ -1,0 +1,63 @@
+name: Incus VM Validation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  validate-incus-vm:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: System Information
+        run: |
+          echo "===== System ====="
+          uname -a
+          cat /etc/os-release
+          echo
+          echo "===== CPU ====="
+          lscpu
+          echo
+          echo "===== Memory ====="
+          free -h
+          echo
+          echo "===== Disk ====="
+          df -h
+
+      - name: Network Validation
+        run: |
+          ping -c 4 github.com
+          curl -I https://github.com
+
+      - name: Package Installation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq tree
+
+      - name: File Operations
+        run: |
+          mkdir -p test-dir
+          echo "Hello from Incus VM" > test-dir/test.txt
+          cat test-dir/test.txt
+          tree .
+
+      - name: Environment Variables
+        run: |
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Arch: $RUNNER_ARCH"
+          echo "Workspace: $GITHUB_WORKSPACE"
+
+      - name: Create Test Artifact
+        run: |
+          echo "Workflow executed successfully" > result.txt
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-result
+          path: result.txt
+
+      - name: Success
+        run: echo "✅ Incus VM validation completed successfully."
